@@ -1,0 +1,9 @@
+{
+	"name": "de-prep-data-factory",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "15f0afb3-9a14-4cd3-b3d5-ec42bc9dc00e",
+		"tenantId": "09dc2fc1-c9ac-4318-b3ee-152650ed6e63"
+	}
+}
