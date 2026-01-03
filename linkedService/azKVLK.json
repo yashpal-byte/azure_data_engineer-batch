@@ -1,0 +1,10 @@
+{
+	"name": "azKVLK",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://az3kvname.vault.azure.net/"
+		}
+	}
+}
