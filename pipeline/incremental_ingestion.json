@@ -143,6 +143,10 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
+					"expression": {
+						"value": "@greater(activity('AzureSQL2Lake').output.dataRead, 0)",
+						"type": "Expression"
+					},
 					"ifTrueActivities": [
 						{
 							"name": "update_last_cdc",
