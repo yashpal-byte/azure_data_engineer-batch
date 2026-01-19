@@ -1,6 +1,17 @@
 {
 	"name": "parameterized_pipeline_prac1",
 	"properties": {
+		"parameters": {
+			"FolderName": {
+				"type": "string"
+			},
+			"FileName": {
+				"type": "string"
+			},
+			"TableName": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
