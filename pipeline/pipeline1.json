@@ -98,7 +98,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "SELECT * FROM @{item().TABLE_NAME} where @{item().WaterMark_Column} > '@{activity('LookupOldwatermark').output.firstRow.watermark_value}' and @{item().WaterMark_Column} <=\n'@activity('LookupNewwatermark').output.firstRow.NewWatermarkvalue}'",
+										"value": "@concat('SELECT * FROM ', item().TABLE_NAME, \n        ' WHERE ', item().WaterMark_Column, ' > ''', activity('LookupOldwatermark').output.firstRow.watermark_value, \n        ''' AND ', item().WaterMark_Column, ' <= ''', activity('LookupNewwatermark').output.firstRow.NewWatermarkvalue, '''')\n",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
