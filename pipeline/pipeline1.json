@@ -28,7 +28,10 @@
 							"typeProperties": {
 								"source": {
 									"type": "AzureSqlSource",
-									"sqlReaderQuery": "SELECT MAX(@{item().WaterMark_Column}) as NewWatermarkvalue from @{item().TABLE_NAME}",
+									"sqlReaderQuery": {
+										"value": "SELECT MAX(@{item().watermark_value}) as NewWatermarkvalue from @{item().TABLE_NAME}",
+										"type": "Expression"
+									},
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
 								},
@@ -53,7 +56,10 @@
 							"typeProperties": {
 								"source": {
 									"type": "AzureSqlSource",
-									"sqlReaderQuery": "select Table_Name,WatermarkValue from config where Table_Name = '@{item().TABLE_NAME}'",
+									"sqlReaderQuery": {
+										"value": "select Table_Name, watermark_value from config where Table_Name = '@{item().TABLE_NAME}'",
+										"type": "Expression"
+									},
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
 								},
