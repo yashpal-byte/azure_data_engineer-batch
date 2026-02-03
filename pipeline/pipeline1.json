@@ -135,6 +135,49 @@
 									}
 								}
 							]
+						},
+						{
+							"name": "UpdateConfigTable",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "getData",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[spupdatewatermark]",
+								"storedProcedureParameters": {
+									"RecordModifiedtime": {
+										"value": {
+											"value": "@{activity('LookupNewwatermark').output.firstRow.NewWatermarkvalue}",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"TableName": {
+										"value": {
+											"value": "@{activity('LookupOldwatermark').output.firstRow.TABLE_NAME}",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LK_SQLDB",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
