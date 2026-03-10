@@ -28,6 +28,35 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "TriggerCopy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LookupTableList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "IterateAndCopySQLTables",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"tableList": {
+							"value": "@activity('LookupTableList').output.value",
+							"type": "Expression"
+						}
+					}
+				}
 			}
 		],
 		"annotations": []
