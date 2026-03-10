@@ -1,6 +1,11 @@
 {
 	"name": "IterateAndCopySQLTables",
 	"properties": {
+		"parameters": {
+			"tableList": {
+				"type": "array"
+			}
+		},
 		"annotations": []
 	}
 }
