@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlConfig",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LK_SQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "config"
+		}
+	}
+}

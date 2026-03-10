@@ -1,0 +1,17 @@
+{
+	"name": "LK_SQLDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "de-prep-sql-server.database.windows.net",
+			"database": "free-sql-db-3195963",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "CloudSA3e4dc044",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDREODQ5MDFGLThEMjgtNDBGMC05MTVBLTA2NzVBQjE3NDkxMF8yMzI2ZjA3Ny0xMzY5LTRlNzgtOTk4Mi1hMDI5YzlhNDExZTciDQp9"
+		}
+	}
+}
