@@ -26,8 +26,43 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "SELECT * FROM @{item().Table_SCHEMA}.@{item().Table_NAME}",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"allowCopyCommand": true
+								},
 								"enableStaging": false
-							}
+							},
+							"inputs": [
+								{
+									"referenceName": "AzureSqlDatabaseDataset",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSqlDWDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"DWTableName": {
+											"value": "@item().TABLE_NAME",
+											"type": "Expression"
+										},
+										"DWSchema": {
+											"value": "@item().Table_SCHEMA",
+											"type": "Expression"
+										}
+									}
+								}
+							]
 						}
 					]
 				}
