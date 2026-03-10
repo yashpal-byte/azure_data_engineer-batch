@@ -1,0 +1,1426 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vulnerabilityAssessments_Default_storageContainerPath": {
+            "type": "SecureString"
+        },
+        "vulnerabilityAssessments_Default_storageContainerPath_1": {
+            "type": "SecureString"
+        },
+        "vaults_az3kvname_name": {
+            "defaultValue": "az3kvname",
+            "type": "String"
+        },
+        "servers_de_prep_sql_server_name": {
+            "defaultValue": "de-prep-sql-server",
+            "type": "String"
+        },
+        "workflows_logic_app_de_prep_name": {
+            "defaultValue": "logic_app_de_prep",
+            "type": "String"
+        },
+        "storageAccounts_batchxstream_name": {
+            "defaultValue": "batchxstream",
+            "type": "String"
+        },
+        "workspaces_de_prep_50_synapse_name": {
+            "defaultValue": "de-prep-50-synapse",
+            "type": "String"
+        },
+        "workspaces_databricks_DE_prep_name": {
+            "defaultValue": "databricks_DE_prep",
+            "type": "String"
+        },
+        "accessConnectors_access_DE_prep_name": {
+            "defaultValue": "access_DE_prep",
+            "type": "String"
+        },
+        "BackupVaults_DE_prep_backup_vault_name": {
+            "defaultValue": "DE-prep-backup-vault",
+            "type": "String"
+        },
+        "userAssignedIdentities_DE_PREP_MANAGED_IDENTITY_name": {
+            "defaultValue": "DE-PREP-MANAGED-IDENTITY",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Databricks/accessConnectors",
+            "apiVersion": "2026-01-01",
+            "name": "[parameters('accessConnectors_access_DE_prep_name')]",
+            "location": "uksouth",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Databricks/workspaces",
+            "apiVersion": "2026-01-01",
+            "name": "[parameters('workspaces_databricks_DE_prep_name')]",
+            "location": "uksouth",
+            "sku": {
+                "name": "trial"
+            },
+            "properties": {
+                "computeMode": "Hybrid",
+                "defaultCatalog": {
+                    "initialType": "UnityCatalog"
+                },
+                "managedResourceGroupId": "/subscriptions/c8a7238d-5a6d-412f-b9db-a337a2a05efc/resourceGroups/Managed_DE_prep",
+                "parameters": {
+                    "enableNoPublicIp": {
+                        "type": "Bool",
+                        "value": true
+                    },
+                    "prepareEncryption": {
+                        "type": "Bool",
+                        "value": false
+                    },
+                    "requireInfrastructureEncryption": {
+                        "type": "Bool",
+                        "value": false
+                    },
+                    "storageAccountName": {
+                        "type": "String",
+                        "value": "dbstoragewjsnwc2byin7m"
+                    },
+                    "storageAccountSkuName": {
+                        "type": "String",
+                        "value": "Standard_ZRS"
+                    }
+                },
+                "authorizations": [
+                    {
+                        "principalId": "9a74af6f-d153-4348-988a-e2672920bee9",
+                        "roleDefinitionId": "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+                    }
+                ],
+                "createdBy": {},
+                "updatedBy": {}
+            }
+        },
+        {
+            "type": "Microsoft.DataProtection/BackupVaults",
+            "apiVersion": "2025-09-01",
+            "name": "[parameters('BackupVaults_DE_prep_backup_vault_name')]",
+            "location": "southindia",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "storageSettings": [
+                    {
+                        "datastoreType": "VaultStore",
+                        "type": "LocallyRedundant"
+                    }
+                ],
+                "securitySettings": {
+                    "softDeleteSettings": {
+                        "state": "On",
+                        "retentionDurationInDays": 14
+                    }
+                },
+                "replicatedRegions": []
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2025-05-01",
+            "name": "[parameters('vaults_az3kvname_name')]",
+            "location": "centralindia",
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
+                },
+                "tenantId": "09dc2fc1-c9ac-4318-b3ee-152650ed6e63",
+                "accessPolicies": [],
+                "enabledForDeployment": true,
+                "enabledForDiskEncryption": true,
+                "enabledForTemplateDeployment": true,
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 90,
+                "enableRbacAuthorization": true,
+                "vaultUri": "[concat('https://', parameters('vaults_az3kvname_name'), '.vault.azure.net/')]",
+                "provisioningState": "Succeeded",
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_logic_app_de_prep_name')]",
+            "location": "centralindia",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "triggers": {},
+                    "actions": {},
+                    "outputs": {}
+                },
+                "parameters": {}
+            }
+        },
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2025-01-31-preview",
+            "name": "[parameters('userAssignedIdentities_DE_PREP_MANAGED_IDENTITY_name')]",
+            "location": "southindia"
+        },
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[parameters('servers_de_prep_sql_server_name')]",
+            "location": "centralindia",
+            "kind": "v12.0",
+            "properties": {
+                "administratorLogin": "CloudSA3e4dc044",
+                "version": "12.0",
+                "minimalTlsVersion": "1.2",
+                "publicNetworkAccess": "Enabled",
+                "administrators": {
+                    "administratorType": "ActiveDirectory",
+                    "principalType": "User",
+                    "login": "dhawleyashpal@live.com",
+                    "sid": "e301e13a-405f-4933-9f45-d51cc7da4661",
+                    "tenantId": "09dc2fc1-c9ac-4318-b3ee-152650ed6e63",
+                    "azureADOnlyAuthentication": false
+                },
+                "restrictOutboundNetworkAccess": "Disabled",
+                "retentionDays": -1
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2025-06-01",
+            "name": "[parameters('storageAccounts_batchxstream_name')]",
+            "location": "southindia",
+            "sku": {
+                "name": "Standard_RAGRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "allowCrossTenantReplication": false,
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false,
+                "isHnsEnabled": true,
+                "networkAcls": {
+                    "ipv6Rules": [],
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        },
+        {
+            "type": "Microsoft.DataProtection/BackupVaults/backupPolicies",
+            "apiVersion": "2025-09-01",
+            "name": "[concat(parameters('BackupVaults_DE_prep_backup_vault_name'), '/backup-policy')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DataProtection/BackupVaults', parameters('BackupVaults_DE_prep_backup_vault_name'))]"
+            ],
+            "properties": {
+                "policyRules": [
+                    {
+                        "lifecycles": [
+                            {
+                                "deleteAfter": {
+                                    "objectType": "AbsoluteDeleteOption",
+                                    "duration": "P7D"
+                                },
+                                "targetDataStoreCopySettings": [],
+                                "sourceDataStore": {
+                                    "dataStoreType": "VaultStore",
+                                    "objectType": "DataStoreInfoBase"
+                                }
+                            }
+                        ],
+                        "isDefault": true,
+                        "name": "Default",
+                        "objectType": "AzureRetentionRule"
+                    },
+                    {
+                        "backupParameters": {
+                            "backupType": "Discrete",
+                            "objectType": "AzureBackupParams"
+                        },
+                        "trigger": {
+                            "schedule": {
+                                "repeatingTimeIntervals": [
+                                    "R/2026-01-04T02:30:00+00:00/P1W"
+                                ],
+                                "timeZone": "Coordinated Universal Time"
+                            },
+                            "taggingCriteria": [
+                                {
+                                    "tagInfo": {
+                                        "tagName": "Default"
+                                    },
+                                    "taggingPriority": 99,
+                                    "isDefault": true
+                                }
+                            ],
+                            "objectType": "ScheduleBasedTriggerContext"
+                        },
+                        "dataStore": {
+                            "dataStoreType": "VaultStore",
+                            "objectType": "DataStoreInfoBase"
+                        },
+                        "name": "BackupWeekly",
+                        "objectType": "AzureBackupRule"
+                    }
+                ],
+                "datasourceTypes": [
+                    "Microsoft.Storage/storageAccounts/adlsBlobServices"
+                ],
+                "objectType": "BackupPolicy"
+            }
+        },
+        {
+            "type": "Microsoft.DataProtection/BackupVaults/backupPolicies",
+            "apiVersion": "2025-09-01",
+            "name": "[concat(parameters('BackupVaults_DE_prep_backup_vault_name'), '/redundantxstorage')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DataProtection/BackupVaults', parameters('BackupVaults_DE_prep_backup_vault_name'))]"
+            ],
+            "properties": {
+                "policyRules": [
+                    {
+                        "lifecycles": [
+                            {
+                                "deleteAfter": {
+                                    "objectType": "AbsoluteDeleteOption",
+                                    "duration": "P7D"
+                                },
+                                "targetDataStoreCopySettings": [],
+                                "sourceDataStore": {
+                                    "dataStoreType": "VaultStore",
+                                    "objectType": "DataStoreInfoBase"
+                                }
+                            }
+                        ],
+                        "isDefault": true,
+                        "name": "Default",
+                        "objectType": "AzureRetentionRule"
+                    },
+                    {
+                        "backupParameters": {
+                            "backupType": "Discrete",
+                            "objectType": "AzureBackupParams"
+                        },
+                        "trigger": {
+                            "schedule": {
+                                "repeatingTimeIntervals": [
+                                    "R/2026-01-04T00:30:00+00:00/P1W"
+                                ],
+                                "timeZone": "Coordinated Universal Time"
+                            },
+                            "taggingCriteria": [
+                                {
+                                    "tagInfo": {
+                                        "tagName": "Default"
+                                    },
+                                    "taggingPriority": 99,
+                                    "isDefault": true
+                                }
+                            ],
+                            "objectType": "ScheduleBasedTriggerContext"
+                        },
+                        "dataStore": {
+                            "dataStoreType": "VaultStore",
+                            "objectType": "DataStoreInfoBase"
+                        },
+                        "name": "BackupWeekly",
+                        "objectType": "AzureBackupRule"
+                    }
+                ],
+                "datasourceTypes": [
+                    "Microsoft.Storage/storageAccounts/adlsBlobServices"
+                ],
+                "objectType": "BackupPolicy"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/administrators",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/ActiveDirectory')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "administratorType": "ActiveDirectory",
+                "login": "dhawleyashpal@live.com",
+                "sid": "e301e13a-405f-4933-9f45-d51cc7da4661",
+                "tenantId": "09dc2fc1-c9ac-4318-b3ee-152650ed6e63"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advancedThreatProtectionSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/CreateIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/DbParameterization')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/DefragmentIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/DropIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/ForceLastGoodPlan')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "location": "Central India",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/auditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "isManagedIdentityInUse": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/azureADOnlyAuthentications",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "azureADOnlyAuthentication": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/connectionPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/default')]",
+            "location": "centralindia",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "connectionType": "Default"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963')]",
+            "location": "centralindia",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "sku": {
+                "name": "GP_S_Gen5",
+                "tier": "GeneralPurpose",
+                "family": "Gen5",
+                "capacity": 1
+            },
+            "kind": "v12.0,user,vcore,serverless,freelimit",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": 34359738368,
+                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                "zoneRedundant": false,
+                "readScale": "Disabled",
+                "autoPauseDelay": 60,
+                "requestedBackupStorageRedundancy": "Local",
+                "minCapacity": 0.5,
+                "maintenanceConfigurationId": "/subscriptions/c8a7238d-5a6d-412f-b9db-a337a2a05efc/providers/Microsoft.Maintenance/publicMaintenanceConfigurations/SQL_Default",
+                "isLedgerOn": false,
+                "useFreeLimit": true,
+                "freeLimitExhaustionBehavior": "AutoPause",
+                "availabilityZone": "NoPreference"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advancedThreatProtectionSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "location": "Central India",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/ledgerDigestUploads",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Current')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Current')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/devOpsAuditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "isAzureMonitorTargetEnabled": false,
+                "isManagedIdentityInUse": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/encryptionProtector",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/current')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "kind": "servicemanaged",
+            "properties": {
+                "serverKeyName": "ServiceManaged",
+                "serverKeyType": "ServiceManaged",
+                "autoRotationEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/extendedAuditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "isManagedIdentityInUse": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/AllowAllWindowsAzureIps')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/ClientIPAddress_2026-3-10_11-38-33')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "startIpAddress": "163.116.214.39",
+                "endIpAddress": "163.116.214.39"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/keys",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/ServiceManaged')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "kind": "servicemanaged",
+            "properties": {
+                "serverKeyType": "ServiceManaged"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/securityAlertPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/sqlVulnerabilityAssessments",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/vulnerabilityAssessments",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                },
+                "storageContainerPath": "[parameters('vulnerabilityAssessments_Default_storageContainerPath')]"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_RAGRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "allowPermanentDelete": false,
+                    "enabled": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_RAGRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "protocolSettings": {
+                    "smb": {}
+                },
+                "cors": {
+                    "corsRules": []
+                },
+                "shareDeleteRetentionPolicy": {
+                    "enabled": true,
+                    "days": 7
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/privateEndpointConnections",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/', parameters('storageAccounts_batchxstream_name'), '.7254e9be-66b5-4e34-bf91-85cb8ef2363a')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "privateEndpoint": {},
+                "privateLinkServiceConnectionState": {
+                    "status": "Pending",
+                    "actionRequired": "None"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/queueServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces",
+            "apiVersion": "2021-06-01",
+            "name": "[parameters('workspaces_de_prep_50_synapse_name')]",
+            "location": "centralindia",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "defaultDataLakeStorage": {
+                    "resourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]",
+                    "createManagedPrivateEndpoint": true,
+                    "accountUrl": "https://batchxstream.dfs.core.windows.net",
+                    "filesystem": "deprepfilesystemsynapse"
+                },
+                "encryption": {},
+                "managedVirtualNetwork": "default",
+                "managedResourceGroupName": "DE-PREP-SYNAPSE",
+                "sqlAdministratorLogin": "sqladminuser",
+                "privateEndpointConnections": [],
+                "managedVirtualNetworkSettings": {
+                    "preventDataExfiltration": false,
+                    "allowedAadTenantIdsForLinking": []
+                },
+                "publicNetworkAccess": "Enabled",
+                "cspWorkspaceAdminProperties": {
+                    "initialWorkspaceAdminObjectId": "e301e13a-405f-4933-9f45-d51cc7da4661"
+                },
+                "azureADOnlyAuthentication": false,
+                "trustedServiceBypassEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/auditingSettings",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/azureADOnlyAuthentications",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "azureADOnlyAuthentication": false
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/dedicatedSQLminimalTlsSettings",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/default')]",
+            "location": "centralindia",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "minimalTlsVersion": "1.2"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/extendedAuditingSettings",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/firewallRules",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/allowAll')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "255.255.255.255"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/firewallRules",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/ClientIPAddress-2026-3-10-12-37-42')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "startIpAddress": "163.116.214.39",
+                "endIpAddress": "163.116.214.39"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/integrationruntimes",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/AutoResolveIntegrationRuntime')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "type": "Managed",
+                "typeProperties": {
+                    "computeProperties": {
+                        "location": "AutoResolve"
+                    }
+                },
+                "managedVirtualNetwork": {
+                    "referenceName": "default",
+                    "type": "ManagedVirtualNetworkReference",
+                    "id": "12ea7887-a12c-464b-82db-a00d542b3096"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/privateEndpointConnections",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/', parameters('workspaces_de_prep_50_synapse_name'), '.synapse-ws-sql--', parameters('workspaces_de_prep_50_synapse_name'), '-65ec6397-c497-4949-88b8-8ceae2d0df17')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "privateEndpoint": {},
+                "privateLinkServiceConnectionState": {
+                    "status": "Approved",
+                    "description": "Approved by Microsoft.Synapse Resource Provider"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/privateEndpointConnections",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/', parameters('workspaces_de_prep_50_synapse_name'), '.synapse-ws-sqlOnDemand--', parameters('workspaces_de_prep_50_synapse_name'), '-2ca4641a-0774-4c16-99aa-2d2ca8da3e19')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "privateEndpoint": {},
+                "privateLinkServiceConnectionState": {
+                    "status": "Approved",
+                    "description": "Approved by Microsoft.Synapse Resource Provider"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/securityAlertPolicies",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW')]",
+            "location": "centralindia",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "sku": {
+                "name": "DW100c",
+                "capacity": 0
+            },
+            "properties": {
+                "maxSizeBytes": 263882790666240,
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "storageAccountType": "GRS",
+                "provisioningState": "Succeeded"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/vulnerabilityAssessments",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                },
+                "storageContainerPath": "[parameters('vulnerabilityAssessments_Default_storageContainerPath_1')]"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advancedThreatProtectionSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "location": "Central India",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/backupLongTermRetentionPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "timeBasedImmutability": "Disabled",
+                "weeklyRetention": "PT0S",
+                "monthlyRetention": "PT0S",
+                "yearlyRetention": "PT0S",
+                "weekOfYear": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 7,
+                "diffBackupIntervalInHours": 12
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/ledgerDigestUploads",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Current')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Current')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "state": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2024-11-01-preview",
+            "name": "[concat(parameters('servers_de_prep_sql_server_name'), '/free-sql-db-3195963/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_de_prep_sql_server_name'), 'free-sql-db-3195963')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_de_prep_sql_server_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default/adfstagedcommandtempdata')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_batchxstream_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default/bronze')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_batchxstream_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default/databricksmetastore')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_batchxstream_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default/deprepfilesystemsynapse')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_batchxstream_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default/gold')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_batchxstream_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('storageAccounts_batchxstream_name'), '/default/silver')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_batchxstream_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_batchxstream_name'))]"
+            ],
+            "properties": {
+                "immutableStorageWithVersioning": {
+                    "enabled": false
+                },
+                "defaultEncryptionScope": "$account-encryption-key",
+                "denyEncryptionScopeOverride": false,
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools/auditingSettings",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces/sqlPools', parameters('workspaces_de_prep_50_synapse_name'), 'Az_syn_DW')]",
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools/extendedAuditingSettings",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces/sqlPools', parameters('workspaces_de_prep_50_synapse_name'), 'Az_syn_DW')]",
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools/geoBackupPolicies",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW/Default')]",
+            "location": "Central India",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces/sqlPools', parameters('workspaces_de_prep_50_synapse_name'), 'Az_syn_DW')]",
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "state": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools/securityAlertPolicies",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces/sqlPools', parameters('workspaces_de_prep_50_synapse_name'), 'Az_syn_DW')]",
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools/transparentDataEncryption",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW/current')]",
+            "location": "Central India",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces/sqlPools', parameters('workspaces_de_prep_50_synapse_name'), 'Az_syn_DW')]",
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "status": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools/vulnerabilityAssessments",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(parameters('workspaces_de_prep_50_synapse_name'), '/Az_syn_DW/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces/sqlPools', parameters('workspaces_de_prep_50_synapse_name'), 'Az_syn_DW')]",
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_de_prep_50_synapse_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        }
+    ]
+}
